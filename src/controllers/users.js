@@ -10,14 +10,30 @@ class UserCtl {
         const { per_page = 10 } = ctx.query
         const page = Math.max(ctx.query.page * 1, 1) - 1;
         const perPage = Math.max(per_page * 1, 1);
-        ctx.body = await User.find().limit(perPage).skip(page * perPage);
+        ctx.body = await User.find({name: new RegExp(ctx.query.q)}).limit(perPage).skip(page * perPage);
     }
     // 获取指定用户
     async findById (ctx) {
         const { fields = " " } = ctx.query;
-        let selectFields = ""
+        let selectFields = "";
+        // 获取可选字段
         selectFields = fields.split(";").filter(f => f).map(f => " +"+f).join("");
-        const user = await User.findById(ctx.params.id).select(selectFields);
+        // 筛选引用字段
+        const populateStr = fields.split(";").filter(f => f).map(f => {
+            if (f === "employments") {
+                return  "employments.company employments.job"
+            } else if(f === "educations") {
+                return "eduactions.school educations.major"
+            }
+            return f
+        }).join(" ")
+        let user = "";
+        // populate 似乎不允许为空？ 因此做了区分 待研究
+        if (Array.isArray(populateStr.match(/\w/g))) {
+            user = await User.findById(ctx.params.id).select(selectFields).populate(populateStr);   
+        } else {
+            user = await User.findById(ctx.params.id).select(selectFields);
+        }
         if(!user) ctx.throw(404);
         ctx.body = user;
     }
@@ -86,6 +102,26 @@ class UserCtl {
         const index = me.following.map(id => id.toString()).indexOf(ctx.params.id);
         if(index > -1) {
             me.following.splice(index, 1);
+            me.save();
+        }
+        ctx.status = 204;
+    }
+    // 关注话题
+    async followTopic(ctx) { 
+        const me = await (await User.findById(ctx.state.user._id)).select("+followTopics");
+        console.log(typeof me)
+        if (!me.followTopics.map(id => id.toString()).includes(ctx.params.id)) {
+            me.followTopics.push(ctx.params.id);
+            me.save();
+        }
+        ctx.status = 204;
+    }
+    // 取消关注话题
+    async unfollowTopic(ctx) {
+        const me = await User.findById(ctx.state.user._id).select("+followTopics");
+        const index = me.followTopics.map(id => id.toString()).indexOf(ctx.params.id);
+        if (index > -1) {
+            me.followTopics.splice(index, 1);
             me.save();
         }
         ctx.status = 204;
