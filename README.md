@@ -33,7 +33,9 @@ API接口：
   - 删除用户
 
   - 获取用户列表 - 支持分页 (page, per_page)
-  - 获取指定用户 - 支持选择性查找字段（fileds）
+    - /users/userID?page=1&per_page=10  - 第一页 10条数据
+  - 获取指定用户 - 支持选择性查找字段（fileds) 支持话题模块引用
+    - /users/userID?fields=employments;locations
 
 - 关注
 
@@ -47,7 +49,9 @@ API接口：
   - 创建话题
   - 获取指定话题 - 支持选择性查找字段（fileds）
   - 更新话题
-  - 获取话题列表 - 支持分页 (page, per_page)
+  - 获取话题列表 - 支持分页 (page, per_page)，支持模糊搜索(q)
+  - 话题关注
+  - 取消话题关注
 
 - 其他
 
