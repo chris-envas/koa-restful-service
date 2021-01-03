@@ -8,9 +8,11 @@ const {
     delete: deleteUser, 
     login,
     follow,
-    listFollowing,
     unfollow,
-    listFollowers
+    followTopic,
+    unfollowTopic,
+    listFollowing,
+    listFollowers,
 } = require("../controllers/users");
 const { checkOwner, checkUserExist } = require("../middlers/middlers");
 const jwt = require("koa-jwt");
@@ -32,6 +34,10 @@ router.post("/login", login);
 router.put("/following/:id", auth, checkUserExist, follow);
 
 router.delete("/following/:id", auth, checkUserExist, unfollow);
+
+router.put("/followTopic/:id", auth, followTopic);
+
+router.delete("/followTopic/:id", auth, unfollowTopic);
 
 router.get("/:id/following", listFollowing);
 
